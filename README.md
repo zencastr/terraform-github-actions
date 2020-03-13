@@ -77,6 +77,7 @@ Inputs configure Terraform GitHub Actions to perform different actions.
 * `tf_actions_cli_credentials_hostname` - (Optional) Hostname for the CLI credentials file. Defaults to `app.terraform.io`.
 * `tf_actions_cli_credentials_token` - (Optional) Token for the CLI credentials file.
 * `tf_actions_comment` - (Optional) Whether or not to comment on GitHub pull requests. Defaults to `true`.
+* `tf_actions_comment_url` - (Optional) URL of issue/pull request to comment on. Defaults to the active pull request for [`pull_request` events](https://help.github.com/en/actions/reference/events-that-trigger-workflows), otherwise unset (no comment will be posted). The format is `https://api.github.com/repos/octocat/Hello-World/issues/1347/comments`, eg what is returned as `comments_url` [from GitHub API requests](https://developer.github.com/v3/pulls/#get-a-single-pull-request).
 * `tf_actions_working_dir` - (Optional) The working directory to change into before executing Terraform subcommands. Defaults to `.` which means use the root of the GitHub repository.
 * `tf_actions_fmt_write` - (Optional) Whether or not to write `fmt` changes to source files. Defaults to `false`.
 

@@ -61,6 +61,15 @@ function parseInputs {
   if [ -n "${TF_WORKSPACE}" ]; then
     tfWorkspace="${TF_WORKSPACE}"
   fi
+
+  tfCommentUrl="$(jq -r .pull_request.comments_url "${GITHUB_EVENT_PATH}")"
+  if [ "$tfCommentUrl" = "null" ]; then
+    # Non pull request event payloads lack this property
+    tfCommentUrl=""
+  fi
+  if [ "${INPUT_TF_ACTIONS_COMMENT_URL}" != "" ]; then
+    tfCommentUrl=${INPUT_TF_ACTIONS_COMMENT_URL}
+  fi
 }
 
 function configureCLICredentials {
