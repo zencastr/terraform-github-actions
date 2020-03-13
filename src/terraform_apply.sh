@@ -23,6 +23,7 @@ function terraformApply {
   fi
 
   # Comment on the pull request if necessary.
+  echo "tfComment" ${tfComment}  tfCommentUrl: ${tfCommentUrl}"
   if [ "${tfComment}" == "1" ] && [ -n "${tfCommentUrl}" ]; then
     applyCommentWrapper="#### \`terraform apply\` ${applyCommentStatus}
 <details><summary>Show Output</summary>
