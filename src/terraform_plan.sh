@@ -7,7 +7,7 @@ function terraformPlan {
   planExitCode=${?}
   planHasChanges=false
   planCommentStatus="Failed"
-  planOutputFile="${tfWorkingDir}/plan.txt"
+  planOutputFile="$(mktemp)"
   touch "${planOutputFile}"
   echo "::set-output name=tf_actions_plan_output_file::${planOutputFile}"
 
