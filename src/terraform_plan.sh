@@ -11,13 +11,25 @@ function terraformPlan {
   touch "${planOutputFile}"
   echo "::set-output name=tf_actions_plan_output_file::${planOutputFile}"
 
-  # Exit code of 0 indicates success with no changes. Print the output and exit.
+  # Clean up the output
+  if echo "${planOutput}" | egrep '^-{72}$' &> /dev/null; then
+        planOutput=$(echo "${planOutput}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
+  fi
+  planOutput=$(echo "${planOutput}" | sed -r -e 's/^  \+/\+/g' | sed -r -e 's/^  ~/~/g' | sed -r -e 's/^  -/-/g')
+
+  # If output is longer than max length (65536 characters), keep last part
+  planOutput=$(echo "${planOutput}" | tail -c 65000 )
+
+  # Save full plan output to a file so it can optionally be added as an artifact
+  echo "${planOutput}" > "${planOutputFile}"
+
+  # Exit code of 0 indicates success with no changes.
   if [ ${planExitCode} -eq 0 ]; then
+    planCommentStatus="NoChanges"
     echo "plan: info: successfully planned Terraform configuration in ${tfWorkingDir}"
     echo "${planOutput}"
     echo
     echo ::set-output name=tf_actions_plan_has_changes::${planHasChanges}
-    exit ${planExitCode}
   fi
 
   # Exit code of 2 indicates success with changes. Print the output, change the
@@ -29,27 +41,19 @@ function terraformPlan {
     echo "plan: info: successfully planned Terraform configuration in ${tfWorkingDir}"
     echo "${planOutput}"
     echo
-    if echo "${planOutput}" | egrep '^-{72}$' &> /dev/null; then
-        planOutput=$(echo "${planOutput}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
-    fi
-    planOutput=$(echo "${planOutput}" | sed -r -e 's/^  \+/\+/g' | sed -r -e 's/^  ~/~/g' | sed -r -e 's/^  -/-/g')
-
-    # Save full plan output to a file so it can optionally be added as an artifact
-    echo "${planOutput}" > "${planOutputFile}"
-
-     # If output is longer than max length (65536 characters), keep last part
-    planOutput=$(echo "${planOutput}" | tail -c 65000 )
+    
   fi
 
   # Exit code of !0 indicates failure.
   if [ ${planExitCode} -ne 0 ]; then
+    planCommentStatus="Failure"
     echo "plan: error: failed to plan Terraform configuration in ${tfWorkingDir}"
     echo "${planOutput}"
     echo
   fi
 
   # Comment on the pull request if necessary.
-  if [ "${tfComment}" == "1" ] && [ -n "${tfCommentUrl}" ] && ([ "${planHasChanges}" == "true" ] || [ "${planCommentStatus}" == "Failed" ]); then
+  if [ "${tfComment}" == "1" ] && [ -n "${tfCommentUrl}" ]; then
     planCommentWrapper="#### \`terraform plan\` ${planCommentStatus}
 <details><summary>Show Output</summary>
 
