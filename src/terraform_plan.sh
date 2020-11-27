@@ -11,6 +11,10 @@ function terraformPlan {
   touch "${planOutputFile}"
   echo "::set-output name=tf_actions_plan_output_file::${planOutputFile}"
 
+  # Save full plan output to a file so it can optionally be added as an artifact
+  # Save the un-truncated output
+  echo "${planOutput}" > "${planOutputFile}"
+
   # Clean up the output
   if echo "${planOutput}" | egrep '^-{72}$' &> /dev/null; then
         planOutput=$(echo "${planOutput}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
@@ -19,9 +23,6 @@ function terraformPlan {
 
   # If output is longer than max length (65536 characters), keep last part
   planOutput=$(echo "${planOutput}" | tail -c 65000 )
-
-  # Save full plan output to a file so it can optionally be added as an artifact
-  echo "${planOutput}" > "${planOutputFile}"
 
   # Exit code of 0 indicates success with no changes.
   if [ ${planExitCode} -eq 0 ]; then
