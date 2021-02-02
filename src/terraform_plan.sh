@@ -15,12 +15,6 @@ function terraformPlan {
   # Save the un-truncated output
   echo "${planOutput}" > "${planOutputFile}"
 
-  # Clean up the output
-  if echo "${planOutput}" | egrep '^-{72}$' &> /dev/null; then
-        planOutput=$(echo "${planOutput}" | sed -n -r '/-{72}/,/-{72}/{ /-{72}/d; p }')
-  fi
-  planOutput=$(echo "${planOutput}" | sed -r -e 's/^  \+/\+/g' | sed -r -e 's/^  ~/~/g' | sed -r -e 's/^  -/-/g')
-
   # If output is longer than max length (65536 characters), keep last part
   planOutput=$(echo "${planOutput}" | tail -c 65000 )
 
